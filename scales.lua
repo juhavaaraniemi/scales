@@ -101,6 +101,20 @@ function init_parameters()
       end
     }
   end
+  params:add_group("SCALES - TRIGGERS",9)
+  for i=1,9 do
+    params:add{
+      type="binary",
+      id=i.."trigger",
+      name=i.." trigger",
+      behavior="momentary",
+      default=0,
+      action=function()
+        stop_chord()
+        play_chord(i)
+      end
+    }
+  end
   params:add_group("SCALES - MOLLY THE POLY",46)
   MollyThePoly.add_params()
   params:bang()
@@ -127,15 +141,17 @@ end
 --
 -- AUDIO FUNCTIONS
 --
-function play_chord()
-  chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[params:get("selected_note")]+params:get("root_note"), params:get("root_note"), params:get("scale"))
-  chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[params:get("selected_note")]+params:get("root_note"),chords[params:get(params:get("selected_note").."selected_chord")])
+function play_chord(note)
+  if note <= #musicutil.SCALES[params:get("scale")].intervals then
+    chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"), params:get("root_note"), params:get("scale"))
+    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"),chords[params:get(note.."selected_chord")])
   
-  for i=1,#chord_notes do
-    table.insert(playing_notes,chord_notes[i])
-    engine.noteOn(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+48),0.6)
+    for i=1,#chord_notes do
+      table.insert(playing_notes,chord_notes[i])
+      engine.noteOn(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+48),0.6)
+    end
+    print("playing")
   end
-  print("playing")
 end
 
 function stop_chord()
@@ -159,11 +175,9 @@ function key(n,z)
   elseif n == 3 and z == 1 and shifted then
     --stop_chord()
   elseif n == 2 and z == 1 then
-    --params:set("selected_note",util.clamp(params:get("selected_note") - 1,1,#musicutil.SCALES[params:get("scale")].intervals-1))
     stop_chord()
-    play_chord()
+    play_chord(params:get("selected_note"))
   elseif n == 3 and z == 1 then
-    --params:set("selected_note",util.clamp(params:get("selected_note") + 1,1,#musicutil.SCALES[params:get("scale")].intervals-1))
     stop_chord()
   end
   screen_dirty = true
