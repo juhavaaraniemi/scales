@@ -1,13 +1,13 @@
--- scaler
+-- scales
 -- v0.1
 
 
 --
 -- LIBRARIES
 --
-engine.name = 'PolySub'
+MollyThePoly = require 'molly_the_poly/lib/molly_the_poly_engine'
+engine.name = 'MollyThePoly'
 musicutil = require 'musicutil'
-PolySub = require 'polysub'
 
 
 --
@@ -19,8 +19,8 @@ playing_notes = {}
 -- INIT FUNCTIONS
 --
 function init_parameters()
-  params:add_separator("SCALER")
-  params:add_group("SCALER - SCALES",12)
+  params:add_separator("SCALES")
+  params:add_group("SCALES - SCALES",12)
   params:add{
     type="number",
     id="scale",
@@ -101,8 +101,8 @@ function init_parameters()
       end
     }
   end
-  params:add_group("SCALER - POLYSUB",19)
-  PolySub.params()
+  params:add_group("SCALES - MOLLY THE POLY",46)
+  MollyThePoly.add_params()
   params:bang()
 end
 
@@ -133,14 +133,14 @@ function play_chord()
   
   for i=1,#chord_notes do
     table.insert(playing_notes,chord_notes[i])
-    engine.start(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+48))
+    engine.noteOn(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+48),0.6)
   end
   print("playing")
 end
 
 function stop_chord()
   for i=1,#playing_notes do
-    engine.stop(playing_notes[i])
+    engine.noteOff(playing_notes[i])
   end
   playing_notes = {}
   print("stopped playing")
