@@ -20,7 +20,7 @@ playing_notes = {}
 --
 function init_parameters()
   params:add_separator("SCALES")
-  params:add_group("SCALES - SCALES",12)
+  params:add_group("SCALES - SCALES",13)
   params:add{
     type="number",
     id="scale",
@@ -89,6 +89,16 @@ function init_parameters()
     action=function()
     end
   }
+  params:add{
+    type="number",
+    id="octave",
+    name="octave",
+    min=0,
+    max=8,
+    default=4,
+    action=function()
+    end
+  }
   for i=1,9 do
     params:add{
       type="number",
@@ -110,8 +120,8 @@ function init_parameters()
       behavior="momentary",
       default=0,
       action=function()
-        stop_chord()
-        play_chord(i)
+        --stop_chord()
+        --play_chord(i)
       end
     }
   end
@@ -148,7 +158,7 @@ function play_chord(note)
   
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
-      engine.noteOn(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+48),0.6)
+      engine.noteOn(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+12*params:get("octave")),0.6)
     end
     print("playing")
   end
