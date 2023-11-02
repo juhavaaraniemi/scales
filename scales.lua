@@ -80,6 +80,7 @@ function init_parameters()
           end
         end
       end
+    grid_dirty = true
     end
   }
   params:add{
@@ -124,6 +125,7 @@ function init_parameters()
       max=0,
       default=0,
       action=function()
+        grid_dirty = true
       end
     }
   end
@@ -287,8 +289,10 @@ function grid_redraw()
     for x=1,#musicutil.SCALES[params:get("scale")].chords[y] do
       if momentary[x][y] then
         g:led(x,y,15)
-      else
+      elseif x == params:get(y.."selected_chord") then
         g:led(x,y,8)
+      else
+        g:led(x,y,4)
       end
     end
   end
