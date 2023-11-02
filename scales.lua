@@ -11,9 +11,25 @@ musicutil = require 'musicutil'
 
 
 --
+-- DEVICES
+--
+g = grid.connect()
+
+
+--
 -- VARIABLES
 --
 playing_notes = {}
+screen_dirty = true
+grid_dirty = true
+momentary = {}
+for x=1,16 do
+  momentary[x] = {}
+  for y=1,8 do
+    momentary[x][y] = false
+  end
+end
+
 
 --
 -- INIT FUNCTIONS
@@ -134,6 +150,8 @@ function init()
   init_parameters()
   redraw_metro = metro.init(redraw_event, 1/30, -1)
   redraw_metro:start()
+  grid_redraw_metro = metro.init(grid_redraw_event, 1/30, -1)
+  grid_redraw_metro:start()
 end
 
 
@@ -147,6 +165,12 @@ function redraw_event()
   end
 end
 
+function grid_redraw_event()
+  if grid_dirty then
+    grid_redraw()
+    grid_dirty = false
+  end
+end
 
 --
 -- AUDIO FUNCTIONS
@@ -172,7 +196,6 @@ function stop_chord()
   print("stopped playing")
 end
 
-  
 
 --
 -- UI FUNCTIONS
@@ -203,6 +226,25 @@ function enc(n,d)
   end
   screen_dirty = true
 end
+
+function g.key(x,y,z)
+  if z == 1 then
+    if y <= #musicutil.SCALES[params:get("scale")].intervals then
+      if x <= #musicutil.SCALES[params:get("scale")].chords[y] then
+        params:set("selected_note",y)
+        params:set(y.."selected_chord",x)
+        play_chord(y)
+        momentary[x][y] = true
+      end
+    end
+  else
+    stop_chord()
+    momentary[x][y] = false
+  end
+  screen_dirty = true
+  grid_dirty = true
+end
+
 
 --
 -- REDRAW FUNCTIONS
@@ -237,4 +279,18 @@ function redraw()
   screen.move(0,63)
   screen.text("scale: "..params:string("scale"))
   screen.update()
+end
+
+function grid_redraw()
+  g:all(0)
+  for y=1,#musicutil.SCALES[params:get("scale")].intervals do
+    for x=1,#musicutil.SCALES[params:get("scale")].chords[y] do
+      if momentary[x][y] then
+        g:led(x,y,15)
+      else
+        g:led(x,y,8)
+      end
+    end
+  end
+  g:refresh()
 end
