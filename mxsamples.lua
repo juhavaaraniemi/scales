@@ -37,7 +37,7 @@ end
 --
 function init_parameters()
   params:add_separator("SCALES")
-  params:add_group("SCALES - SCALES",13)
+  params:add_group("SCALES - SCALES",22)
   params:add{
     type="number",
     id="scale",
@@ -129,6 +129,17 @@ function init_parameters()
         grid_dirty = true
       end
     }
+    params:add{
+      type="number",
+      id=i.."selected_inversion",
+      name=i.." selected inversion",
+      min=0,
+      max=2,
+      default=0,
+      action=function()
+        grid_dirty = true
+      end
+    }
   end
   params:add_group("SCALES - TRIGGERS",9)
   for i=1,9 do
@@ -181,12 +192,12 @@ end
 function play_chord(note)
   if note <= #musicutil.SCALES[params:get("scale")].intervals then
     chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"), params:get("root_note"), params:get("scale"))
-    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"),chords[params:get(note.."selected_chord")])
+    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"),chords[params:get(note.."selected_chord")],params:get(note.."selected_inversion"))
   
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
       print(chord_notes[i])
-      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=120})
+      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=100})
     end
   end
 end
@@ -270,7 +281,7 @@ function redraw()
     screen.move(27,h*i)
     --w = 14
     if params:get(i.."selected_chord") > 0 then
-      screen.text(chords[params:get(i.."selected_chord")])
+      screen.text(chords[params:get(i.."selected_chord")].." "..params:get(i.."selected_inversion"))
     --  for j=2,#chord_notes do
     --    screen.move(15+w,h*i)
     --    screen.text(musicutil.note_num_to_name(chord_notes[j]),false)
