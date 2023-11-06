@@ -5,8 +5,9 @@
 --
 -- LIBRARIES
 --
-MollyThePoly = require 'molly_the_poly/lib/molly_the_poly_engine'
-engine.name = 'MollyThePoly'
+mxsamples=include("mx.samples/lib/mx.samples")
+engine.name="MxSamples"
+sample=mxsamples:new()
 musicutil = require 'musicutil'
 
 
@@ -143,8 +144,8 @@ function init_parameters()
       end
     }
   end
-  params:add_group("SCALES - MOLLY THE POLY",46)
-  MollyThePoly.add_params()
+  --params:add_group("SCALES - MOLLY THE POLY",46)
+  --MollyThePoly.add_params()
   params:bang()
 end
 
@@ -184,18 +185,17 @@ function play_chord(note)
   
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
-      engine.noteOn(chord_notes[i],musicutil.note_num_to_freq(chord_notes[i]+12*params:get("octave")),0.6)
+      print(chord_notes[i])
+      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=120})
     end
-    print("playing")
   end
 end
 
 function stop_chord()
   for i=1,#playing_notes do
-    engine.noteOff(playing_notes[i])
+    sample:off({name="steinway model b",midi=playing_notes[i]})
   end
   playing_notes = {}
-  print("stopped playing")
 end
 
 
