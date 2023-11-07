@@ -81,7 +81,12 @@ function init_parameters()
           end
         end
       end
-    grid_dirty = true
+      for i=1,9 do
+        for j=1,16 do
+          params:set(i..j.."selected_inversion",0)
+        end
+      end
+      grid_dirty = true
     end
   }
   params:add{
