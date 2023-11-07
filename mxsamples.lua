@@ -254,6 +254,8 @@ function enc(n,d)
     params:delta("scale",d)
   elseif n == 2 then
     params:delta("selected_note",d)
+  elseif n == 3 and shifted then
+    params:delta(params:get("selected_note").."inversion",d)
   elseif n == 3 then
     params:delta(params:get("selected_note").."selected_chord",d)
   end
