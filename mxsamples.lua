@@ -127,19 +127,39 @@ function init_parameters()
       default=0,
       action=function()
         grid_dirty = true
+        if params:get(i.."selected_chord") > 0 then
+          params:set(i.."inversion",params:get(i..params:get(i.."selected_chord").."selected_inversion"))
+        end
       end
     }
     params:add{
       type="number",
-      id=i.."selected_inversion",
-      name=i.." selected inversion",
+      id=i.."inversion",
+      name=i.." inversion",
       min=0,
-      max=2,
+      max=6,
       default=0,
-      action=function()
-        grid_dirty = true
+      action=function(value)
+        if params:get(i.."selected_chord") > 0 then
+          params:set(i..params:get(i.."selected_chord").."selected_inversion",value)
+        end
       end
     }
+  end
+  params:add_group("SCALES - INVERSIONS",144)
+  for i=1,9 do
+    for j=1,16 do
+      params:add{
+        type="number",
+        id=i..j.."selected_inversion",
+        name=i..j.." selected inversion",
+        min=0,
+        max=6,
+        default=0,
+        action=function()
+        end
+      }
+    end
   end
   params:add_group("SCALES - TRIGGERS",9)
   for i=1,9 do
@@ -192,7 +212,7 @@ end
 function play_chord(note)
   if note <= #musicutil.SCALES[params:get("scale")].intervals then
     chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"), params:get("root_note"), params:get("scale"))
-    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"),chords[params:get(note.."selected_chord")],params:get(note.."selected_inversion"))
+    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"),chords[params:get(note.."selected_chord")],params:get(note..params:get(note.."selected_chord").."selected_inversion"))
   
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
@@ -281,7 +301,12 @@ function redraw()
     screen.move(27,h*i)
     --w = 14
     if params:get(i.."selected_chord") > 0 then
-      screen.text(chords[params:get(i.."selected_chord")].." "..params:get(i.."selected_inversion"))
+      if params:get(i.."inversion") == 0 then
+        screen.text(chords[params:get(i.."selected_chord")])
+      else
+        screen.text(chords[params:get(i.."selected_chord")].." inv"..params:get(i.."inversion"))
+      end
+
     --  for j=2,#chord_notes do
     --    screen.move(15+w,h*i)
     --    screen.text(musicutil.note_num_to_name(chord_notes[j]),false)
