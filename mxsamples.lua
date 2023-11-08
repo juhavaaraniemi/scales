@@ -37,7 +37,7 @@ end
 --
 function init_parameters()
   params:add_separator("SCALES")
-  params:add_group("SCALES - SCALES",22)
+  params:add_group("SCALES - SCALES",31)
   params:add{
     type="number",
     id="scale",
@@ -107,7 +107,10 @@ function init_parameters()
     min=0,
     max=8,
     default=4,
-    action=function()
+    action=function(value)
+      for i=1,9 do
+        params:set(i.."octave",value)
+      end
     end
   }
   for i=1,9 do
@@ -123,7 +126,6 @@ function init_parameters()
         if value > 0 then
           params:set(i.."inversion",params:get(i..value.."selected_inversion"))
           local inv_look = params.lookup[i.."inversion"]
-          --print(#musicutil.CHORDS[musicutil.SCALES[params:get("scale")].chords[i][value]].intervals)
           params.params[inv_look].max = #musicutil.CHORDS[musicutil.SCALES[params:get("scale")].chords[i][value]].intervals-1
         end
       end
@@ -140,6 +142,14 @@ function init_parameters()
           params:set(i..params:get(i.."selected_chord").."selected_inversion",value)
         end
       end
+    }
+    params:add{
+      type="number",
+      id=i.."octave",
+      name=i.." octave",
+      min=0,
+      max=8,
+      default=4
     }
   end
   params:add_group("selected_inversions","SCALES - INVERSIONS",144)
@@ -200,7 +210,7 @@ function play_chord(note)
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
       --print(chord_notes[i])
-      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=80})
+      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get(note.."octave"),velocity=80})
     end
   end
 end
