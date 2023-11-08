@@ -53,6 +53,7 @@ function init_parameters()
       local note_look = params.lookup["selected_note"]
       params.params[note_look].max = #musicutil.SCALES[params:get("scale")].intervals
       params:set("selected_note",1)
+      params:set("octave",4)
       --max selected chord and value is set first to 0
       for i=1,9 do
         local chord_look = params.lookup[i.."selected_chord"]
@@ -247,7 +248,8 @@ function enc(n,d)
     params:delta("scale",d)
   elseif n == 2 then
     --params:delta("selected_note",d)
-    params:delta(params:get("selected_note").."selected_chord",d)
+    --params:delta(params:get("selected_note").."selected_chord",d)
+    params:delta(params:get("selected_note").."octave",d)
   elseif n == 3 and shifted then
     --params:delta(params:get("selected_note").."inversion",d)
   elseif n == 3 then
@@ -291,10 +293,11 @@ function redraw()
       screen.text("O")
     end
     screen.move(15,h*i)
-    screen.text(musicutil.note_num_to_name(musicutil.SCALES[params:get("scale")].intervals[i]+params:get("root_note")), false)
+    local note = musicutil.note_num_to_name(musicutil.SCALES[params:get("scale")].intervals[i]+params:get("root_note"), false)
+    screen.text(note..params:get(i.."octave"))
     chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[i]+params:get("root_note"), params:get("root_note"), params:get("scale"))
     chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[i]+params:get("root_note"),chords[params:get(i.."selected_chord")])
-    screen.move(27,h*i)
+    screen.move(33,h*i)
     --w = 14
     if params:get(i.."selected_chord") > 0 then
       if params:get(i.."inversion") == 0 then
