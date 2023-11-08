@@ -151,7 +151,8 @@ function init_parameters()
       end
     }
   end
-  params:add_group("SCALES - INVERSIONS",144)
+  params:add_group("selected_inversions","SCALES - INVERSIONS",144)
+  params:hide("selected_inversions")
   for i=1,9 do
     for j=1,16 do
       params:add{
@@ -222,7 +223,7 @@ function play_chord(note)
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
       print(chord_notes[i])
-      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=100})
+      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=80})
     end
   end
 end
@@ -258,11 +259,12 @@ function enc(n,d)
   if n == 1 then
     params:delta("scale",d)
   elseif n == 2 then
-    params:delta("selected_note",d)
-  elseif n == 3 and shifted then
-    params:delta(params:get("selected_note").."inversion",d)
-  elseif n == 3 then
+    --params:delta("selected_note",d)
     params:delta(params:get("selected_note").."selected_chord",d)
+  elseif n == 3 and shifted then
+    --params:delta(params:get("selected_note").."inversion",d)
+  elseif n == 3 then
+    params:delta(params:get("selected_note").."inversion",d)
   end
   screen_dirty = true
 end
