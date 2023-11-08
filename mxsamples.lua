@@ -67,18 +67,6 @@ function init_parameters()
         if #musicutil.SCALES[params:get("scale")].chords[i] > 0 then
           params.params[chord_look].min = 1
           params:set(i.."selected_chord",1)
-          for key, value in pairs(musicutil.SCALES[params:get("scale")].chords[i]) do
-            print(i.." "..key.." "..value)
-            if value == 1 then
-              params:set(i.."selected_chord",key)
-            elseif value == 12 then
-              params:set(i.."selected_chord",key)
-            elseif value == 17 then
-              params:set(i.."selected_chord",key)
-            elseif value == 24 then
-              params:set(i.."selected_chord",key)
-            end
-          end
         end
       end
       for i=1,9 do
@@ -130,10 +118,13 @@ function init_parameters()
       min=0,
       max=0,
       default=0,
-      action=function()
+      action=function(value)
         grid_dirty = true
-        if params:get(i.."selected_chord") > 0 then
-          params:set(i.."inversion",params:get(i..params:get(i.."selected_chord").."selected_inversion"))
+        if value > 0 then
+          params:set(i.."inversion",params:get(i..value.."selected_inversion"))
+          local inv_look = params.lookup[i.."inversion"]
+          --print(#musicutil.CHORDS[musicutil.SCALES[params:get("scale")].chords[i][value]].intervals)
+          params.params[inv_look].max = #musicutil.CHORDS[musicutil.SCALES[params:get("scale")].chords[i][value]].intervals-1
         end
       end
     }
@@ -166,20 +157,6 @@ function init_parameters()
         end
       }
     end
-  end
-  params:add_group("SCALES - TRIGGERS",9)
-  for i=1,9 do
-    params:add{
-      type="binary",
-      id=i.."trigger",
-      name=i.." trigger",
-      behavior="momentary",
-      default=0,
-      action=function()
-        --stop_chord()
-        --play_chord(i)
-      end
-    }
   end
   --params:add_group("SCALES - MOLLY THE POLY",46)
   --MollyThePoly.add_params()
@@ -222,7 +199,7 @@ function play_chord(note)
   
     for i=1,#chord_notes do
       table.insert(playing_notes,chord_notes[i])
-      print(chord_notes[i])
+      --print(chord_notes[i])
       sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get("octave"),velocity=80})
     end
   end
