@@ -71,8 +71,11 @@ function init_parameters()
         end
       end
       for i=1,9 do
+        params:set(i.."inversion",0)
+        params:set(i.."octave",4)
         for j=1,16 do
           params:set(i..j.."selected_inversion",0)
+          params:set(i..j.."selected_octave",4)
         end
       end
       grid_dirty = true
@@ -126,6 +129,7 @@ function init_parameters()
         grid_dirty = true
         if value > 0 then
           params:set(i.."inversion",params:get(i..value.."selected_inversion"))
+          params:set(i.."octave",params:get(i..value.."selected_octave"))
           local inv_look = params.lookup[i.."inversion"]
           params.params[inv_look].max = #musicutil.CHORDS[musicutil.SCALES[params:get("scale")].chords[i][value]].intervals-1
         end
@@ -150,7 +154,12 @@ function init_parameters()
       name=i.." octave",
       min=0,
       max=8,
-      default=4
+      default=4,
+      action=function(value)
+        if params:get(i.."selected_chord") > 0 then
+          params:set(i..params:get(i.."selected_chord").."selected_octave",value)
+        end
+      end
     }
   end
   params:add_group("selected_inversions","SCALES - INVERSIONS",144)
@@ -164,6 +173,22 @@ function init_parameters()
         min=0,
         max=6,
         default=0,
+        action=function()
+        end
+      }
+    end
+  end
+  params:add_group("selected_octaves","SCALES - OCTAVES",144)
+  params:hide("selected_octaves")
+  for i=1,9 do
+    for j=1,16 do
+      params:add{
+        type="number",
+        id=i..j.."selected_octave",
+        name=i..j.." selected octave",
+        min=0,
+        max=8,
+        default=4,
         action=function()
         end
       }
