@@ -37,6 +37,47 @@ end
 --
 function init_parameters()
   params:add_separator("SCALES")
+  params:add_group("SCALES - ROUTING",4)
+  params:add{
+    type="option",
+    id="audio",
+    name="audio output",
+    options={"on","off"},
+    default=1,
+    action = function(value)
+      --stop_chord()
+    end
+  }
+  params:add{
+    type="option",
+    id="midi",
+    name="midi",
+    options={"send","off"},
+    default=1,
+    action = function(value)
+      --stop_chord()
+    end
+  }
+  params:add{
+    type = "number",
+    id = "midi_out_device",
+    name = "midi out device",
+    min = 1,
+    max = 4,
+    default = 1,
+    action = function(value)
+      --stop_chord()
+      midi_out_device = midi.connect(value)
+    end
+  }
+  params:add{
+    type="number",
+    id="midi_out_channel",
+    name="midi out channel",
+    min=1,
+    max=16,
+    default=1
+  }
   params:add_group("SCALES - SCALES",31)
   params:add{
     type="number",
@@ -199,7 +240,12 @@ function init_parameters()
   params:bang()
 end
 
+function init_midi_devices()
+  midi_out_device = midi.connect(1)
+end
+
 function init()
+  init_midi_devices()
   init_parameters()
   redraw_metro = metro.init(redraw_event, 1/30, -1)
   redraw_metro:start()
@@ -226,26 +272,40 @@ function grid_redraw_event()
 end
 
 --
--- AUDIO FUNCTIONS
+-- NOTE FUNCTIONS
 --
-function play_chord(note)
+function play_chord(note,chord)
   if note <= #musicutil.SCALES[params:get("scale")].intervals then
     chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"), params:get("root_note"), params:get("scale"))
-    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"),chords[params:get(note.."selected_chord")],params:get(note..params:get(note.."selected_chord").."selected_inversion"))
-  
-    for i=1,#chord_notes do
-      table.insert(playing_notes,chord_notes[i])
-      --print(chord_notes[i])
-      sample:on({name="steinway model b",midi=chord_notes[i]+12*params:get(note.."octave"),velocity=80})
+    
+    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note")+12*params:get(note.."octave"),chords[chord],params:get(note..chord.."selected_inversion"))
+
+    for i,v in pairs(chord_notes) do
+      playing_notes[v] = note..chord
+      --print(v.." "..playing_notes[v])
+      if params:get("audio") == 1 then
+        sample:on({name="steinway model b",midi=v,velocity=80})
+      end
+      if params:get("midi") == 1 then
+        midi_out_device:note_on(v, 80, params:get("midi_out_channel"))
+      end
     end
   end
 end
 
-function stop_chord()
-  for i=1,#playing_notes do
-    sample:off({name="steinway model b",midi=playing_notes[i]})
+function stop_chord(note,chord)
+  for i,v in pairs(playing_notes) do
+    if v == note..chord then
+      print(i.." "..v)
+      if params:get("audio") == 1 then
+        sample:off({name="steinway model b",midi=i})
+      end
+      if params:get("midi") == 1 then
+        midi_out_device:note_off(i,80, params:get("midi_out_channel"))
+      end
+      playing_notes[i] = nil
+    end
   end
-  playing_notes = {}
 end
 
 
@@ -289,12 +349,12 @@ function g.key(x,y,z)
       if x <= #musicutil.SCALES[params:get("scale")].chords[y] then
         params:set("selected_note",y)
         params:set(y.."selected_chord",x)
-        play_chord(y)
+        play_chord(y,x)
         momentary[x][y] = true
       end
     end
   else
-    stop_chord()
+    stop_chord(y,x)
     momentary[x][y] = false
   end
   screen_dirty = true
