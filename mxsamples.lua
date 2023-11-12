@@ -45,7 +45,7 @@ function init_parameters()
     options={"on","off"},
     default=1,
     action = function(value)
-      --stop_chord()
+      stop_all_notes()
     end
   }
   params:add{
@@ -55,7 +55,7 @@ function init_parameters()
     options={"send","off"},
     default=1,
     action = function(value)
-      --stop_chord()
+      stop_all_notes()
     end
   }
   params:add{
@@ -66,7 +66,7 @@ function init_parameters()
     max = 4,
     default = 1,
     action = function(value)
-      --stop_chord()
+      stop_all_notes()
       midi_out_device = midi.connect(value)
     end
   }
@@ -76,7 +76,10 @@ function init_parameters()
     name="midi out channel",
     min=1,
     max=16,
-    default=1
+    default=1,
+    action=function()
+      stop_all_notes()
+    end
   }
   params:add_group("SCALES - SCALES",31)
   params:add{
@@ -90,6 +93,7 @@ function init_parameters()
       return string.lower(musicutil.SCALES[param:get()].name)
     end,
     action=function()
+      stop_all_notes()
       --max selected note is set to number of notes in scale
       local note_look = params.lookup["selected_note"]
       params.params[note_look].max = #musicutil.SCALES[params:get("scale")].intervals
@@ -133,6 +137,7 @@ function init_parameters()
       return musicutil.note_num_to_name(param:get(),false)
     end,
     action=function()
+      stop_all_notes()
     end
   }
   params:add{
@@ -153,6 +158,7 @@ function init_parameters()
     max=8,
     default=4,
     action=function(value)
+      stop_all_notes()
       for i=1,9 do
         params:set(i.."octave",value)
       end
@@ -167,6 +173,7 @@ function init_parameters()
       max=0,
       default=0,
       action=function(value)
+        stop_all_notes()
         grid_dirty = true
         if value > 0 then
           params:set(i.."inversion",params:get(i..value.."selected_inversion"))
@@ -184,6 +191,7 @@ function init_parameters()
       max=6,
       default=0,
       action=function(value)
+        stop_all_notes()
         if params:get(i.."selected_chord") > 0 then
           params:set(i..params:get(i.."selected_chord").."selected_inversion",value)
         end
@@ -197,6 +205,7 @@ function init_parameters()
       max=8,
       default=4,
       action=function(value)
+        stop_all_notes()
         if params:get(i.."selected_chord") > 0 then
           params:set(i..params:get(i.."selected_chord").."selected_octave",value)
         end
@@ -308,6 +317,14 @@ function stop_chord(note,chord)
   end
 end
 
+function stop_all_notes()
+  for i,v in pairs(playing_notes) do
+    sample:off({name="steinway model b",midi=i})
+    midi_out_device:note_off(i,80, params:get("midi_out_channel"))
+  end
+  playing_notes = {}
+end
+    
 
 --
 -- UI FUNCTIONS
