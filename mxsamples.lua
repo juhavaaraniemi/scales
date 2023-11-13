@@ -173,7 +173,6 @@ function init_parameters()
       max=0,
       default=0,
       action=function(value)
-        stop_all_notes()
         grid_dirty = true
         if value > 0 then
           params:set(i.."inversion",params:get(i..value.."selected_inversion"))
