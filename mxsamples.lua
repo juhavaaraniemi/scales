@@ -106,7 +106,6 @@ function init_parameters()
         params:set(i.."selected_chord",0)
       end
       --selected chord max is set to possible amount of chords
-      --default chord selection is set to basic triad form
       for i=1,#musicutil.SCALES[params:get("scale")].intervals do
         local chord_look = params.lookup[i.."selected_chord"]
         params.params[chord_look].max = #musicutil.SCALES[params:get("scale")].chords[i]
@@ -124,6 +123,7 @@ function init_parameters()
         end
       end
       grid_dirty = true
+      screen_dirty = true
     end
   }
   params:add{
@@ -138,6 +138,7 @@ function init_parameters()
     end,
     action=function()
       stop_all_notes()
+      screen_dirty = true
     end
   }
   params:add{
@@ -148,6 +149,7 @@ function init_parameters()
     max=1,
     default=1,
     action=function()
+      screen_dirty = true
     end
   }
   params:add{
@@ -162,6 +164,7 @@ function init_parameters()
       for i=1,9 do
         params:set(i.."octave",value)
       end
+      screen_dirty = true
     end
   }
   for i=1,9 do
@@ -173,13 +176,14 @@ function init_parameters()
       max=0,
       default=0,
       action=function(value)
-        grid_dirty = true
         if value > 0 then
           params:set(i.."inversion",params:get(i..value.."selected_inversion"))
           params:set(i.."octave",params:get(i..value.."selected_octave"))
           local inv_look = params.lookup[i.."inversion"]
           params.params[inv_look].max = #musicutil.CHORDS[musicutil.SCALES[params:get("scale")].chords[i][value]].intervals-1
         end
+        grid_dirty = true
+        screen_dirty = true
       end
     }
     params:add{
@@ -194,6 +198,7 @@ function init_parameters()
         if params:get(i.."selected_chord") > 0 then
           params:set(i..params:get(i.."selected_chord").."selected_inversion",value)
         end
+        screen_dirty = true
       end
     }
     params:add{
@@ -208,6 +213,7 @@ function init_parameters()
         if params:get(i.."selected_chord") > 0 then
           params:set(i..params:get(i.."selected_chord").."selected_octave",value)
         end
+        screen_dirty = true
       end
     }
   end
@@ -347,12 +353,12 @@ end
 function enc(n,d)
   if n == 1 then
     params:delta("scale",d)
-  elseif n == 2 then
-    --params:delta("selected_note",d)
-    --params:delta(params:get("selected_note").."selected_chord",d)
-    params:delta(params:get("selected_note").."octave",d)
+  elseif n == 2 and shifted then
+    params:delta("selected_note",d)
   elseif n == 3 and shifted then
-    --params:delta(params:get("selected_note").."inversion",d)
+    params:delta(params:get("selected_note").."selected_chord",d)
+  elseif n == 2 then
+    params:delta(params:get("selected_note").."octave",d)
   elseif n == 3 then
     params:delta(params:get("selected_note").."inversion",d)
   end
