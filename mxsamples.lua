@@ -363,6 +363,7 @@ function enc(n,d)
     params:delta(params:get("selected_note").."inversion",d)
   end
   screen_dirty = true
+  grid_dirty = true
 end
 
 function g.key(x,y,z)
