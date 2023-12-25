@@ -249,6 +249,17 @@ function init_parameters()
       }
     end
   end
+  params:add_group("SCALES - ARPEGGIO",1)
+  params:add{
+    type="number",
+    id="speed",
+    name="speed in ms",
+    min=0,
+    max=3000,
+    default=0,
+    action=function()
+    end
+  }
   --params:add_group("SCALES - MOLLY THE POLY",46)
   --MollyThePoly.add_params()
   params:bang()
@@ -307,6 +318,28 @@ function play_chord(note,chord)
   end
 end
 
+function strum_chord(note,chord)
+  if note <= #musicutil.SCALES[params:get("scale")].intervals then
+    chords = musicutil.chord_types_for_note(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note"), params:get("root_note"), params:get("scale"))
+    
+    chord_notes = musicutil.generate_chord(musicutil.SCALES[params:get("scale")].intervals[note]+params:get("root_note")+12*params:get(note.."octave"),chords[chord],params:get(note..chord.."selected_inversion"))
+
+    for i,v in pairs(chord_notes) do
+      playing_notes[v] = note..chord
+      --print(v.." "..playing_notes[v])
+      if params:get("audio") == 1 then
+        sample:on({name="steinway model b",midi=v,velocity=80})
+      end
+      if params:get("midi") == 1 then
+        midi_out_device:note_on(v, 80, params:get("midi_out_channel"))
+      end
+      if params:get("speed") > 0 then
+        clock.sleep(params:get("speed")/1000)
+      end
+    end
+  end
+end
+
 function stop_chord(note,chord)
   for i,v in pairs(playing_notes) do
     if v == note..chord then
@@ -342,8 +375,7 @@ function key(n,z)
   elseif n == 3 and z == 1 and shifted then
     --stop_chord()
   elseif n == 2 and z == 1 then
-    stop_chord()
-    play_chord(params:get("selected_note"))
+    clock.run(strum_chord,params:get("selected_note"),params:get(params:get("selected_note").."selected_chord"))
   elseif n == 3 and z == 1 then
     stop_chord()
   end
@@ -372,11 +404,13 @@ function g.key(x,y,z)
       if x <= #musicutil.SCALES[params:get("scale")].chords[y] then
         params:set("selected_note",y)
         params:set(y.."selected_chord",x)
-        play_chord(y,x)
+        --play_chord(y,x)
+        strum = clock.run(strum_chord,y,x)
         momentary[x][y] = true
       end
     end
   else
+    clock.cancel(strum)
     stop_chord(y,x)
     momentary[x][y] = false
   end
